@@ -1,21 +1,49 @@
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  FlatList,
-  Image,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+	Alert,
+	FlatList,
+	Image,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
 } from "react-native";
 import { Tasks } from "../components/Tasks";
 import { styles } from "./styles";
 
 export function Home() {
-	const [tasks, setTasks] = useState<string[]>();
+	const [tasks, setTasks] = useState<string[]>([]);
+	const [newTask, setNewTask] = useState<string>("");
 	const [isFocused, setIsFocused] = useState<boolean>(false);
 
-	function handleRemoveTask() {}
+	function handleTaskAdd() {
+		if (tasks.includes(newTask)) {
+			return Alert.alert(
+				"Tarefa existente",
+				"Esta tarefa já existe, coloque outra tarefa"
+			);
+		}
+
+		setTasks((prevState) => [...prevState, newTask.trim()]);
+		setNewTask("");
+	}
+
+	function handleTaskRemove(taskToDelete: string) {
+		Alert.alert("Remover", `Deseja remover esta tarefa '${taskToDelete}'?`, [
+			{
+				text: "Sim",
+				onPress: () =>
+					setTasks((prevState) =>
+						prevState.filter((task) => task !== taskToDelete)
+					),
+			},
+			{
+				text: "Não",
+				style: "cancel",
+			},
+		]);
+	}
 
 	const handleFocus = () => {
 		setIsFocused(true);
@@ -36,8 +64,10 @@ export function Home() {
 						placeholderTextColor="#6B6B6B"
 						onFocus={handleFocus}
 						onBlur={handleBlur}
+						onChangeText={(text) => setNewTask(text)}
+						value={newTask}
 					/>
-					<TouchableOpacity style={styles.button}>
+					<TouchableOpacity style={styles.button} onPress={handleTaskAdd}>
 						<AntDesign name="pluscircleo" size={16} color="#FFF" />
 					</TouchableOpacity>
 				</View>
@@ -59,7 +89,11 @@ export function Home() {
 				<FlatList
 					data={tasks}
 					renderItem={({ item }) => (
-						<Tasks key={item} taskName={item} onRemove={handleRemoveTask} />
+						<Tasks
+							key={item}
+							taskName={item}
+							onRemove={() => handleTaskRemove(item)}
+						/>
 					)}
 					ListEmptyComponent={() => (
 						<View style={styles.listEmptyBox}>
