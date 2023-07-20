@@ -71,11 +71,12 @@ export const styles = StyleSheet.create({
 	},
 
 	status: {
-		color: "#FFF",
+		color: "#f2f2f2",
 		fontWeight: "bold",
-		backgroundColor: "#333",
+		backgroundColor: "#222",
 		paddingHorizontal: 8,
 		borderRadius: 10,
+		textAlign: 'center'
 	},
 
 	listEmptyBox: {

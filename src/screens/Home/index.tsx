@@ -12,37 +12,64 @@ import {
 import { Tasks } from "../components/Tasks";
 import { styles } from "./styles";
 
+type TypeTask = {
+	id: number;
+	content: string;
+	done: boolean;
+};
+
 export function Home() {
-	const [tasks, setTasks] = useState<string[]>([]);
-	const [newTask, setNewTask] = useState<string>("");
-	const [isFocused, setIsFocused] = useState<boolean>(false);
+	let counterTasksCompleted;
+
+	const [tasks, setTasks] = useState<TypeTask[]>([]);
+	const [newTask, setNewTask] = useState("");
+	const [isFocused, setIsFocused] = useState(false);
+	const [tasksCompleted, setTasksCompleted] = useState(0);
 
 	function handleTaskAdd() {
-		if (tasks.includes(newTask)) {
-			return Alert.alert(
-				"Tarefa existente",
-				"Esta tarefa já existe, coloque outra tarefa"
-			);
-		}
-
-		setTasks((prevState) => [...prevState, newTask.trim()]);
+		setTasks((prevState) => [
+			...prevState,
+			{ id: tasks.length + 1, content: newTask.trim(), done: false },
+		]);
 		setNewTask("");
 	}
 
-	function handleTaskRemove(taskToDelete: string) {
+	function handleTaskRemove(taskToDelete: number) {
 		Alert.alert("Remover", `Deseja remover esta tarefa '${taskToDelete}'?`, [
 			{
 				text: "Sim",
-				onPress: () =>
+				onPress: () => {
 					setTasks((prevState) =>
-						prevState.filter((task) => task !== taskToDelete)
-					),
+						prevState.filter((task) => task.id !== taskToDelete)
+					);
+
+					setTasksCompleted((prevState) =>
+						prevState - 1 < 0 ? 0 : prevState - 1
+					);
+				},
 			},
 			{
 				text: "Não",
 				style: "cancel",
 			},
 		]);
+	}
+
+	function handleTaskChecked(taskToDone: number) {
+		const taskIndex = tasks.findIndex((task) => {
+			return task.id === taskToDone;
+		});
+
+		if (taskIndex !== -1) {
+			const taskToUpdate = [...tasks];
+
+			taskToUpdate[taskIndex].done = !taskToUpdate[taskIndex].done;
+
+			setTasks(taskToUpdate);
+
+			counterTasksCompleted = tasks.filter((t) => t.done === true).length;
+			setTasksCompleted(counterTasksCompleted);
+		}
 	}
 
 	const handleFocus = () => {
@@ -76,13 +103,13 @@ export function Home() {
 						<Text style={[styles.statusTitle, { color: "#4EA8DE" }]}>
 							Criadas
 						</Text>
-						<Text style={styles.status}>0</Text>
+						<Text style={styles.status}>{tasks.length}</Text>
 					</View>
 					<View style={styles.statusBox}>
 						<Text style={[styles.statusTitle, { color: "#8284FA" }]}>
 							Concluídas
 						</Text>
-						<Text style={styles.status}>0</Text>
+						<Text style={styles.status}>{tasksCompleted}</Text>
 					</View>
 				</View>
 
@@ -90,9 +117,10 @@ export function Home() {
 					data={tasks}
 					renderItem={({ item }) => (
 						<Tasks
-							key={item}
-							taskName={item}
-							onRemove={() => handleTaskRemove(item)}
+							key={item.id}
+							task={item}
+							onRemove={() => handleTaskRemove(item.id)}
+							onCheckedChanged={() => handleTaskChecked(item.id)}
 						/>
 					)}
 					ListEmptyComponent={() => (
